@@ -17,6 +17,7 @@ app.setValidatorCompiler(validatorCompiler)
 app.register(fastifyCors, { origin: '*' })
 
 app.get('/health', () => {
+  console.log('bateu')
   return 'OK'
 })
 
