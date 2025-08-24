@@ -9,6 +9,7 @@ import z from 'zod'
 import { randomUUID } from 'node:crypto'
 import { db } from '../db/client.ts'
 import { schema } from '../db/schema/index.ts'
+import { dispatchOrderCreated } from '../broker/messages/order-created.ts'
 
 
 const app = fastify().withTypeProvider<ZodTypeProvider>()
@@ -34,7 +35,13 @@ app.post('/orders', {
 
   const orderId = randomUUID()
 
-  //todo: dispatch order created
+  dispatchOrderCreated({
+    orderId,
+    amount,
+    customer: {
+      id: 'B9176D35-7276-4255-A323-D825CAEE03B5',
+    },    
+  })
 
   try {
     await db.insert(schema.orders).values({
