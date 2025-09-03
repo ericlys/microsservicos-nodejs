@@ -1,0 +1,53 @@
+name: Deploy API
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    name: Deploy to production
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      # Baixa o repositório para o runner.
+
+      - uses: pnpm/action-setup@v4
+        name: Install PNPM
+        with:
+          version: 9
+          run_install: false
+      # Garante que a versão 9 do pnpm está disponível no PATH do runner.
+
+      - name: Install Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: "pnpm"
+      # Instala Node 20 e liga o cache de dependências do pnpm
+
+      - name: Install dependencies
+        working-directory: ./infra
+        run: pnpm install --frozen-lockfile
+        # Entra em ./infra e instala deps (Pulumi SDKs, providers etc.).
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+      # Permissões necessárias no IAM
+
+      - uses: pulumi/actions@v6
+        with:
+          command: up
+          work-dir: ./infra
+          stack-name: dev
+        env:
+          PULUMI_ACCESS_TOKEN: ${{ secrets.PULUMI_ACCESS_TOKEN }}
+          PULUMI_CONFIG_PASSPHRASE: ""
+      # Baixa e usa o CLI do Pulumi para rodar pulumi up no modo CI
