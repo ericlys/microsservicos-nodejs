@@ -3,6 +3,10 @@ import { appLoadBalancer, networkLoadBalancer } from '../load-balancer'
 
 import { cluster } from "../cluster";
 
+// -> LB -> A, B, C (services)
+
+//creating listener and target group for rabbitmq management ui
+//target group is where the load balancer will forward the requests
 const rabbitMQAdminTargetGroup = appLoadBalancer.createTargetGroup('rabbitmq-admin-target', {
   port: 15672,
   protocol: 'HTTP',
@@ -12,12 +16,14 @@ const rabbitMQAdminTargetGroup = appLoadBalancer.createTargetGroup('rabbitmq-adm
   },
 })
 
+//listener for rabbitmq management ui
 export const rabbitMQAdminHttpListener = appLoadBalancer.createListener('rabbitmq-admin-listener', {
-  port: 15672,
+  port: 15672, //port to access rabbitmq management ui
   protocol: 'HTTP',
   targetGroup: rabbitMQAdminTargetGroup,
 })
 
+//creating listener and target group for amqp protocol
 const amqpTargetGroup = networkLoadBalancer.createTargetGroup('amqp-target', {
   protocol: 'TCP',
   port: 5672,
@@ -28,6 +34,7 @@ const amqpTargetGroup = networkLoadBalancer.createTargetGroup('amqp-target', {
   },
 })
 
+//create listener for amqp protocol
 export const amqpListener = networkLoadBalancer.createListener('amqp-listener', {
   port: 5672,
   protocol: 'TCP',
@@ -49,7 +56,7 @@ export const rabbitMQService = new awsx.classic.ecs.FargateService('fargate-rabb
       ],
       environment: [
         { name: 'RABBITMQ_DEFAULT_USER', value: 'admin' },
-        { name: 'RABBITMQ_DEFAULT_PASS', value: 'admin' },
+        { name: 'RABBITMQ_DEFAULT_PASS', value: 'admin' }, //pulumi.secret('senah_do_rabbitmq' - pulumi cloud secret management
       ],
     },
   },

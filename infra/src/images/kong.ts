@@ -16,7 +16,7 @@ export const kongDockerImage = new docker.Image('kong-image', {
     pulumi.interpolate`${kongECRRepository.repository.repositoryUrl}:latest`
   ],
   context: {
-    location: '../docker/kong',
+    location: '../docker/kong', //custom kong dockerfile
   },
   push: true,
   platforms: [

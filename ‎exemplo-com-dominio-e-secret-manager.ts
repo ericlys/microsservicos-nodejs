@@ -2,10 +2,12 @@ import { interpolate } from '@pulumi/pulumi';
 import * as awsx from '@pulumi/awsx';
 import * as aws from '@pulumi/aws';
 
+// Use an existing Route53 hosted zone
 const zone = aws.route53.getZone({
   name: 'livedocs.dev',
 })
 
+//create an ACM certificate for the domain
 const cert = new aws.acm.Certificate("aws-workshop-acm-certificate", {
   domainName: "app.livedocs.dev",
   validationMethod: "DNS",
@@ -23,6 +25,7 @@ const validatedCert = new aws.acm.CertificateValidation("aws-workshop-acm-valida
   certificateArn: cert.arn,
   validationRecordFqdns: [validationRecord.fqdn],
 });
+//======
 
 const cluster = new awsx.classic.ecs.Cluster('aws-workshop-cluster')
 
@@ -30,6 +33,8 @@ const lb = new awsx.classic.lb.ApplicationLoadBalancer('aws-workshop-lb', {
   securityGroups: cluster.securityGroups,
 })
 
+
+// Create a Route53 alias record for the load balancer
 new aws.route53.Record("app-alias", {
   zoneId: zone.then(zone => zone.zoneId),
   name: "app",
@@ -72,6 +77,7 @@ const image = new awsx.ecr.Image('aws-workshop-image', {
   platform: 'linux/amd64',
 })
 
+// Get secrets
 const executionRole = new aws.iam.Role('aws-workshop-execution-role', {
   assumeRolePolicy: aws.iam.assumeRolePolicyForPrincipal({
     Service: 'ecs-tasks.amazonaws.com',
@@ -116,7 +122,7 @@ const appService = new awsx.classic.ecs.FargateService('aws-workshop-app', {
   },
   desiredCount: 1,
 })
-
+//setup autoscaling
 const scalingTarget = new aws.appautoscaling.Target('aws-workshop-autoscaling-target', {
   minCapacity: 1,
   maxCapacity: 5,

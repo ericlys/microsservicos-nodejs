@@ -25,7 +25,7 @@ services:
       KONG_ADMIN_GUI_URL: http://localhost:8002
       ORDERS_SERVICE_URL: http://host.docker.internal:3333
       # KONG_DECLARATIVE_CONFIG: '/kong/config.yaml'
-    extra_hosts:
+    extra_hosts:  #hack for kong see my localhost as him localhost
       - "host.docker.internal:host-gateway"
     # volumes:
     #   - './docker/kong/config.yaml:/kong/config.yaml'

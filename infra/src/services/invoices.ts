@@ -3,12 +3,12 @@ import * as awsx from '@pulumi/awsx'
 
 import { cluster } from "../cluster";
 import { amqpListener } from "./rabbitmq";
-import { ordersDockerImage } from "../images/orders";
+import { invoicesDockerImage } from "../images/invoices";
 import { appLoadBalancer } from '../load-balancer';
 
-// Create Target Group for Orders Service
-const ordersTargetGroup = appLoadBalancer.createTargetGroup('orders-target', {
-  port: 3333,
+// Create Target Group for Invoices Service
+const invoicesTargetGroup = appLoadBalancer.createTargetGroup('invoices-target', {
+  port: 3334,
   protocol: 'HTTP',
   healthCheck: {
     path: '/health', // helath check endpoint
@@ -16,23 +16,23 @@ const ordersTargetGroup = appLoadBalancer.createTargetGroup('orders-target', {
   },
 })
 
-// Create HTTP Listener for Orders Service
-export const ordersHttpListener = appLoadBalancer.createListener('orders-listener', {
-  port: 3333,
+// Create HTTP Listener for Invoices Service
+export const invoicesHttpListener = appLoadBalancer.createListener('invoices-listener', {
+  port: 3334,
   protocol: 'HTTP',
-  targetGroup: ordersTargetGroup,
+  targetGroup: invoicesTargetGroup,
 })
 
-export const ordersService = new awsx.classic.ecs.FargateService('fargate-orders', {
+export const invoicesService = new awsx.classic.ecs.FargateService('fargate-invoices', {
   cluster,
   desiredCount: 1,
   waitForSteadyState: false,
   taskDefinitionArgs: {
     container: {
-      image: ordersDockerImage.ref,
+      image: invoicesDockerImage.ref,
       cpu: 256,
       memory: 512,
-      portMappings: [ordersHttpListener],
+      portMappings: [invoicesHttpListener],
       environment: [
         {
           name: 'BROKER_URL',
@@ -40,7 +40,7 @@ export const ordersService = new awsx.classic.ecs.FargateService('fargate-orders
         },
         { //TODO: Move to Secrets Manager
           name: 'DATABASE_URL',
-          value: 'postgresql://neondb_owner:npg_zKHXobLOZN08@ep-broad-star-ahrtyqy6.c-3.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require',
+          value: 'postgresql://neondb_owner:ndg_PsH1dKILyAW0@ep-frosty-wave-ahg0n6gj.c-3.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require',
         },
         // OpenTelemetry configuration
         {
@@ -57,11 +57,11 @@ export const ordersService = new awsx.classic.ecs.FargateService('fargate-orders
         },
         {
           name: "OTEL_SERVICE_NAME",
-          value: "orders"
+          value: "invoices"
         },
         {
           name: "OTEL_RESOURCE_ATTRIBUTES",
-          value: "service.name=orders,service.namespace=eventonodejs,deployment.environment=production"
+          value: "service.name=invoices,service.namespace=eventonodejs,deployment.environment=production"
         },
         {
           name: "OTEL_NODE_RESOURCE_DETECTORS",

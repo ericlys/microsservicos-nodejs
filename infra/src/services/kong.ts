@@ -10,7 +10,7 @@ const proxyTargetGroup = appLoadBalancer.createTargetGroup('proxy-target', {
   port: 8000,
   protocol: 'HTTP',
   healthCheck: {
-    path: '/orders/health',
+    path: '/orders/health', //use one service to check kong health
     protocol: 'HTTP',
   },
 })
@@ -36,6 +36,7 @@ export const adminHttpListener = appLoadBalancer.createListener('admin-listener'
   targetGroup: adminTargetGroup,
 })
 
+//admin api listener with other target group to separate access
 const adminAPITargetGroup = appLoadBalancer.createTargetGroup('admin-api-target', {
   port: 8001,
   protocol: 'HTTP',

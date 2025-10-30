@@ -1,3 +1,6 @@
+# Custom Kong Dockerfile to run commands at startup
+# gettext-base is included to use envsubst for templating
+
 FROM kong:3.9
 
 USER root
